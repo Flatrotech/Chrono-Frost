@@ -27,8 +27,8 @@ var move_dir = Vector2()
 var prev_mouse_pressed = false  # Track previous mouse state
 
 func _ready():
-	# Detect if we're on a mobile platform or debug mode is enabled
-	is_mobile = OS.has_feature("mobile") or OS.get_name() == "Android" or OS.get_name() == "iOS" or debug_force_mobile
+	# Improved mobile detection that works with web browsers
+	is_mobile = detect_mobile_device() or debug_force_mobile
 	if is_mobile:
 		setup_mobile_controls()
 	
@@ -37,6 +37,42 @@ func _ready():
 	position = position.snapped(Vector2(grid_size, grid_size))
 	target_pos = position
 	throw_timer = 0.0  # Start with no cooldown
+
+func detect_mobile_device():
+	# Standard OS detection
+	if OS.has_feature("mobile") or OS.get_name() == "Android" or OS.get_name() == "iOS":
+		return true
+		
+	# Web-specific detection for mobile browsers
+	if OS.has_feature("web"):
+		# Check if the viewport size suggests a mobile device (portrait mode or small screen)
+		var screen_size = get_viewport_rect().size
+		var min_dimension = min(screen_size.x, screen_size.y)
+		var max_dimension = max(screen_size.x, screen_size.y)
+		
+		# Portrait orientation or small screen suggests mobile
+		if screen_size.y > screen_size.x or max_dimension < 900:
+			return true
+			
+		# Try to use JavaScript to detect mobile browsers
+		if Engine.has_singleton("JavaScriptBridge"):
+			var js = Engine.get_singleton("JavaScriptBridge")
+			# This checks for common mobile browser user agents
+			var is_mobile_js = false
+			var eval_result = js.eval("""
+				(function() {
+					return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+				})();
+			""")
+			if eval_result is String and eval_result.empty():
+				print("JavaScript evaluation failed")
+			else:
+				is_mobile_js = eval_result
+				
+			if is_mobile_js:
+				return true
+				
+	return false
 
 func setup_mobile_controls():
 	# Load and add the virtual joystick

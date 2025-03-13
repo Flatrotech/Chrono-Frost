@@ -21,6 +21,7 @@ script = ExtResource("2_gyfs4")
 snowball_scene = ExtResource("3_gubc5")
 throw_offset = Vector2(4.995, -11.77)
 joystick_scene = ExtResource("3_c16ls")
+debug_force_mobile = true
 
 [node name="Guy" type="Sprite2D" parent="CharacterBody2D"]
 z_index = 1

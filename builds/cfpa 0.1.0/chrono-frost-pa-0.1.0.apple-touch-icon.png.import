@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bd7lgh54fcfde"
-path="res://.godot/imported/chrono-frost-pa-0.1.0.apple-touch-icon.png-c4ddca3d44f2c6b0ab1819930be737d6.ctex"
+path="res://.godot/imported/chrono-frost-pa-0.1.0.apple-touch-icon.png-950f582cffbb998b54095a44e2bf747a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://builds/chrono-frost-pa-0.1.0.apple-touch-icon.png"
-dest_files=["res://.godot/imported/chrono-frost-pa-0.1.0.apple-touch-icon.png-c4ddca3d44f2c6b0ab1819930be737d6.ctex"]
+source_file="res://builds/cfpa 0.1.0/chrono-frost-pa-0.1.0.apple-touch-icon.png"
+dest_files=["res://.godot/imported/chrono-frost-pa-0.1.0.apple-touch-icon.png-950f582cffbb998b54095a44e2bf747a.ctex"]
 
 [params]
 

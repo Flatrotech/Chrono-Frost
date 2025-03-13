@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bo42k77usk5rp"
-path="res://.godot/imported/chrono-frost-pa-0.1.0.icon.png-65a48bf713086cf82bae20b7843d0e68.ctex"
+path="res://.godot/imported/chrono-frost-pa-0.1.0.icon.png-f4dece778e1dd1f068e29aa092b8d76e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://builds/chrono-frost-pa-0.1.0.icon.png"
-dest_files=["res://.godot/imported/chrono-frost-pa-0.1.0.icon.png-65a48bf713086cf82bae20b7843d0e68.ctex"]
+source_file="res://builds/cfpa 0.1.0/chrono-frost-pa-0.1.0.icon.png"
+dest_files=["res://.godot/imported/chrono-frost-pa-0.1.0.icon.png-f4dece778e1dd1f068e29aa092b8d76e.ctex"]
 
 [params]
 

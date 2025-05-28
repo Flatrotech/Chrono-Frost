@@ -26,8 +26,11 @@ var moving = false
 var move_dir = Vector2()
 var prev_mouse_pressed = false  # Track previous mouse state
 
+@onready var animated_sprite_2d = $AnimatedSprite2D
+
 func _ready():
 	# Improved mobile detection that works with web browsers
+	animated_sprite_2d.play("default")
 	is_mobile = detect_mobile_device() or debug_force_mobile
 	if is_mobile:
 		setup_mobile_controls()
@@ -112,6 +115,7 @@ func _physics_process(delta):
 	# Movement logic stays the same
 	if not moving:
 		# Check for new movement input when not already moving
+		animated_sprite_2d.play("default")
 		var input_dir = Vector2.ZERO
 
 		# WASD movement
@@ -139,6 +143,8 @@ func _physics_process(delta):
 				target_pos = potential_target
 				moving = true
 	else:
+		animated_sprite_2d.play("walk")
+
 		# Move toward target position
 		var distance_vec = target_pos - position
 		var distance_length = distance_vec.length()

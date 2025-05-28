@@ -1,35 +1,18 @@
-[gd_scene load_steps=10 format=3 uid="uid://6fox0kk5t02s"]
+[gd_scene load_steps=7 format=3 uid="uid://6fox0kk5t02s"]
 
 [ext_resource type="Texture2D" uid="uid://cj2vhhlyxfp2n" path="res://assets/arena.png" id="1_0f027"]
-[ext_resource type="Texture2D" uid="uid://cke0l1od8wq0w" path="res://assets/guy.png" id="1_2c62f"]
-[ext_resource type="Script" uid="uid://qdd02l5hihp4" path="res://scripts/guy.gd" id="2_gyfs4"]
-[ext_resource type="PackedScene" uid="uid://blld7fjbfr5m7" path="res://scenes/virtual_joystick.tscn" id="3_c16ls"]
-[ext_resource type="PackedScene" uid="uid://d36gpxl1kbenl" path="res://scenes/snowball.tscn" id="3_gubc5"]
-[ext_resource type="Texture2D" uid="uid://cxd43fvt5jayj" path="res://assets/aseprite/bad_guy.png" id="4_d5x1h"]
+[ext_resource type="PackedScene" uid="uid://bddm4d8l6gutm" path="res://scenes/blue_guy.tscn" id="1_pu3yx"]
+[ext_resource type="PackedScene" uid="uid://con8eu4hxnh0j" path="res://scenes/red_guy.tscn" id="4_pu3yx"]
+[ext_resource type="Script" uid="uid://bit0ssubgj240" path="res://scripts/red_guy.gd" id="5_gubc5"]
 [ext_resource type="Script" uid="uid://nnjoe7p23835" path="res://scripts/camera.gd" id="5_rt2n2"]
-
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_rt2n2"]
-height = 36.0
 
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_rt2n2"]
 
 [node name="MainScene" type="Node2D"]
 
-[node name="CharacterBody2D" type="CharacterBody2D" parent="."]
+[node name="Player" parent="." instance=ExtResource("1_pu3yx")]
 position = Vector2(114, 128)
-script = ExtResource("2_gyfs4")
-snowball_scene = ExtResource("3_gubc5")
-throw_offset = Vector2(4.995, -11.77)
-joystick_scene = ExtResource("3_c16ls")
-debug_force_mobile = true
-
-[node name="Guy" type="Sprite2D" parent="CharacterBody2D"]
-z_index = 1
-texture_filter = 1
-texture = ExtResource("1_2c62f")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
-shape = SubResource("CapsuleShape2D_rt2n2")
+throw_offset = Vector2(4.995, -11.09)
 
 [node name="Arena" type="Node2D" parent="."]
 z_index = -4
@@ -45,14 +28,6 @@ anchor_mode = 0
 zoom = Vector2(2.29, 2.29)
 script = ExtResource("5_rt2n2")
 world_size = Vector2(505, 255)
-
-[node name="Bad Guys" type="Node2D" parent="."]
-
-[node name="Sprite2D" type="Sprite2D" parent="Bad Guys"]
-texture_filter = 1
-position = Vector2(360, 128)
-texture = ExtResource("4_d5x1h")
-flip_h = true
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 position = Vector2(133, 2.475)
@@ -77,3 +52,7 @@ position = Vector2(-116, -242.525)
 rotation = 1.5708
 shape = SubResource("WorldBoundaryShape2D_rt2n2")
 one_way_collision_margin = 0.0
+
+[node name="Red Guy" parent="." instance=ExtResource("4_pu3yx")]
+position = Vector2(374, 124)
+script = ExtResource("5_gubc5")

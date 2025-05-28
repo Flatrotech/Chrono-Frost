@@ -1,14 +1,22 @@
-[gd_scene load_steps=7 format=3 uid="uid://6fox0kk5t02s"]
+[gd_scene load_steps=9 format=3 uid="uid://6fox0kk5t02s"]
 
 [ext_resource type="Texture2D" uid="uid://cj2vhhlyxfp2n" path="res://assets/arena.png" id="1_0f027"]
 [ext_resource type="PackedScene" uid="uid://bddm4d8l6gutm" path="res://scenes/blue_guy.tscn" id="1_pu3yx"]
 [ext_resource type="PackedScene" uid="uid://con8eu4hxnh0j" path="res://scenes/red_guy.tscn" id="4_pu3yx"]
-[ext_resource type="Script" uid="uid://bit0ssubgj240" path="res://scripts/red_guy.gd" id="5_gubc5"]
 [ext_resource type="Script" uid="uid://nnjoe7p23835" path="res://scripts/camera.gd" id="5_rt2n2"]
+[ext_resource type="Script" uid="uid://cdouxfk8b6261" path="res://scripts/game_manager.gd" id="6_game_manager"]
+[ext_resource type="Script" uid="uid://bnu2syp064dbd" path="res://scripts/warmth_ui.gd" id="7_warmth_ui"]
 
-[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_rt2n2"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_boundary"]
+size = Vector2(10, 255)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_boundary_horizontal"]
+size = Vector2(505, 10)
 
 [node name="MainScene" type="Node2D"]
+
+[node name="GameManager" type="Node" parent="."]
+script = ExtResource("6_game_manager")
 
 [node name="Player" parent="." instance=ExtResource("1_pu3yx")]
 position = Vector2(114, 128)
@@ -30,29 +38,127 @@ script = ExtResource("5_rt2n2")
 world_size = Vector2(505, 255)
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
-position = Vector2(133, 2.475)
-rotation = -3.14159
 
-[node name="Left" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(134, -1.52501)
-rotation = -1.5708
-shape = SubResource("WorldBoundaryShape2D_rt2n2")
+[node name="LeftWall" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(-5, 127.5)
+shape = SubResource("RectangleShape2D_boundary")
 
-[node name="Lower" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(-120, -252.525)
-rotation = 3.14159
-shape = SubResource("WorldBoundaryShape2D_rt2n2")
+[node name="RightWall" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(510, 127.5)
+shape = SubResource("RectangleShape2D_boundary")
 
-[node name="Upper" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(132, 22.475)
-shape = SubResource("WorldBoundaryShape2D_rt2n2")
+[node name="TopWall" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(252.5, -5)
+shape = SubResource("RectangleShape2D_boundary_horizontal")
 
-[node name="Right" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(-116, -242.525)
-rotation = 1.5708
-shape = SubResource("WorldBoundaryShape2D_rt2n2")
-one_way_collision_margin = 0.0
+[node name="BottomWall" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(252.5, 260)
+shape = SubResource("RectangleShape2D_boundary_horizontal")
 
 [node name="Red Guy" parent="." instance=ExtResource("4_pu3yx")]
 position = Vector2(374, 124)
-script = ExtResource("5_gubc5")
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="WarmthUI" type="Control" parent="UILayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_warmth_ui")
+
+[node name="PlayerPanel" type="Panel" parent="UILayer/WarmthUI"]
+modulate = Color(1, 1, 1, 0.8)
+layout_mode = 0
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -80.0
+offset_right = 200.0
+offset_bottom = -10.0
+
+[node name="PlayerWarmthLabel" type="Label" parent="UILayer/WarmthUI"]
+layout_mode = 0
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -70.0
+offset_right = 190.0
+offset_bottom = -50.0
+text = "Player Warmth: 100%"
+horizontal_alignment = 1
+
+[node name="PlayerWarmthBar" type="ProgressBar" parent="UILayer/WarmthUI"]
+layout_mode = 0
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -45.0
+offset_right = 190.0
+offset_bottom = -20.0
+value = 100.0
+show_percentage = false
+
+[node name="EnemyPanel" type="Panel" parent="UILayer/WarmthUI"]
+modulate = Color(1, 1, 1, 0.8)
+layout_mode = 0
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -80.0
+offset_right = -10.0
+offset_bottom = -10.0
+
+[node name="EnemyWarmthLabel" type="Label" parent="UILayer/WarmthUI"]
+layout_mode = 0
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -190.0
+offset_top = -70.0
+offset_right = -20.0
+offset_bottom = -50.0
+text = "Enemy Warmth: 100%"
+horizontal_alignment = 1
+
+[node name="EnemyWarmthBar" type="ProgressBar" parent="UILayer/WarmthUI"]
+layout_mode = 0
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -190.0
+offset_top = -45.0
+offset_right = -20.0
+offset_bottom = -20.0
+value = 100.0
+show_percentage = false
+
+[node name="StatusPanel" type="Panel" parent="UILayer/WarmthUI"]
+modulate = Color(1, 1, 1, 0.8)
+layout_mode = 0
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 10.0
+offset_right = 100.0
+offset_bottom = 50.0
+
+[node name="GameStatusLabel" type="Label" parent="UILayer/WarmthUI"]
+layout_mode = 0
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -90.0
+offset_top = 20.0
+offset_right = 90.0
+offset_bottom = 40.0
+text = "Fight!"
+horizontal_alignment = 1
+vertical_alignment = 1

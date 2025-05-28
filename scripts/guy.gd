@@ -5,6 +5,15 @@ extends CharacterBody2D
 @export var move_speed = 2  # Pixels per frame when moving
 @export var slow_down_distance = 2.0  # Start slowing down when this close to target
 
+# Temperature/Health System
+@export var max_warmth = 100.0  # Maximum warmth (health)
+@export var warmth_loss_per_hit = 25.0  # Warmth lost when hit by snowball
+@export var warmth_regen_rate = 5.0  # Warmth gained per second when not taking damage
+@export var warmth_regen_delay = 3.0  # Seconds to wait before regenerating warmth
+var current_warmth = 100.0  # Current warmth level
+var last_damage_time = 0.0  # Time when last damage was taken
+var is_frozen = false  # Whether player is defeated (frozen)
+
 # snowball throwing exports
 @export var snowball_scene : PackedScene
 @export var throw_offset = Vector2(20,0)
@@ -25,10 +34,21 @@ var target_pos = Vector2()
 var moving = false
 var move_dir = Vector2()
 var prev_mouse_pressed = false  # Track previous mouse state
+var current_animation = "default"  # Track current animation to prevent spam
 
 @onready var animated_sprite_2d = $AnimatedSprite2D
 
 func _ready():
+	# Add this player to the "player" group so enemies can find it
+	add_to_group("player")
+	print("DEBUG: Player added to 'player' group")
+	
+	# Initialize temperature system
+	current_warmth = max_warmth
+	is_frozen = false
+	last_damage_time = 0.0
+	print("DEBUG: Player temperature system initialized - Warmth: ", current_warmth)
+	
 	# Improved mobile detection that works with web browsers
 	animated_sprite_2d.play("default")
 	is_mobile = detect_mobile_device() or debug_force_mobile
@@ -40,6 +60,7 @@ func _ready():
 	position = position.snapped(Vector2(grid_size, grid_size))
 	target_pos = position
 	throw_timer = 0.0  # Start with no cooldown
+	print("DEBUG: Player ready complete - Position: ", position)
 
 func detect_mobile_device():
 	# Standard OS detection
@@ -50,7 +71,7 @@ func detect_mobile_device():
 	if OS.has_feature("web"):
 		# Check if the viewport size suggests a mobile device (portrait mode or small screen)
 		var screen_size = get_viewport_rect().size
-		var min_dimension = min(screen_size.x, screen_size.y)
+		var _min_dimension = min(screen_size.x, screen_size.y)
 		var max_dimension = max(screen_size.x, screen_size.y)
 		
 		# Portrait orientation or small screen suggests mobile
@@ -105,36 +126,51 @@ func _physics_process(delta):
 	# Update throw cooldown timer
 	if throw_timer > 0:
 		throw_timer -= delta
-
-	# Handle standard PC controls
-	if not is_mobile:
-		handle_pc_input()
-	else:
-		handle_mobile_input(delta)
 	
-	# Movement logic stays the same
-	if not moving:
-		# Check for new movement input when not already moving
-		animated_sprite_2d.play("default")
-		var input_dir = Vector2.ZERO
+	# Update temperature system
+	update_temperature_system(delta)
+	
+	# Don't process movement if frozen
+	if is_frozen:
+		# Use our animation system for consistency
+		if current_animation != "default":
+			print("DEBUG: Freezing - changing animation to default")
+			animated_sprite_2d.play("default")
+			current_animation = "default"
+		return
+	
+	# Handle snowball throwing
+	var mouse_pressed = Input.is_action_pressed("ui_select") or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	if mouse_pressed and not prev_mouse_pressed and throw_timer <= 0:
+		print("DEBUG: Player throwing snowball!")
+		throw_snowball()
+		throw_timer = throw_cooldown
+	prev_mouse_pressed = mouse_pressed
 
-		# WASD movement
-		if Input.is_key_pressed(KEY_D):
-			input_dir.x += 1
-		if Input.is_key_pressed(KEY_A):
-			input_dir.x -= 1
-		if Input.is_key_pressed(KEY_S):
-			input_dir.y += 1
-		if Input.is_key_pressed(KEY_W):
-			input_dir.y -= 1
-		
-		# Also support arrow keys as fallback
-		input_dir.x += Input.get_axis("ui_left", "ui_right")
-		input_dir.y += Input.get_axis("ui_up", "ui_down")
-		
-		# Normalize diagonal movement
+	# Movement logic - check for input first
+	var input_dir = Vector2.ZERO
+	
+	# WASD movement
+	if Input.is_key_pressed(KEY_D):
+		input_dir.x += 1
+	if Input.is_key_pressed(KEY_A):
+		input_dir.x -= 1
+	if Input.is_key_pressed(KEY_S):
+		input_dir.y += 1
+	if Input.is_key_pressed(KEY_W):
+		input_dir.y -= 1
+	
+	# Also support arrow keys as fallback
+	input_dir.x += Input.get_axis("ui_left", "ui_right")
+	input_dir.y += Input.get_axis("ui_up", "ui_down")
+	
+	# Normalize diagonal movement
+	if input_dir != Vector2.ZERO:
+		input_dir = input_dir.normalized()
+	
+	if not moving:
+		# Only start new movement when not already moving
 		if input_dir != Vector2.ZERO:
-			input_dir = input_dir.normalized()
 			move_dir = input_dir
 			
 			# Check for collision before setting target position
@@ -143,18 +179,24 @@ func _physics_process(delta):
 				target_pos = potential_target
 				moving = true
 	else:
-		animated_sprite_2d.play("walk")
-
 		# Move toward target position
 		var distance_vec = target_pos - position
 		var distance_length = distance_vec.length()
 		
 		if distance_length <= 0.5:
-			# We've reached or nearly reached the target position
+			# We've reached the target position
 			position = target_pos
 			moving = false
+			
+			# Check if we should immediately start a new movement
+			if input_dir != Vector2.ZERO:
+				move_dir = input_dir
+				var potential_target = position + move_dir * grid_size
+				if not would_collide(potential_target):
+					target_pos = potential_target
+					moving = true
 		else:
-			 # Move at constant speed for snappy movement
+			# Move at constant speed for snappy movement
 			var move_step = move_dir * move_speed
 			
 			# Apply movement directly for snappier feel
@@ -166,56 +208,67 @@ func _physics_process(delta):
 				# Getting close, snap to target
 				position = target_pos
 				moving = false
-
-func handle_pc_input():
-	# Check for mouse clicks (for throwing)
-	var mouse_pressed = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-	if mouse_pressed and not prev_mouse_pressed and throw_timer <= 0:
-		throw_snowball()
-		throw_timer = throw_cooldown
-	prev_mouse_pressed = mouse_pressed
+				
+				# Check if we should immediately start a new movement
+				if input_dir != Vector2.ZERO:
+					move_dir = input_dir
+					var potential_target = position + move_dir * grid_size
+					if not would_collide(potential_target):
+						target_pos = potential_target
+						moving = true
 	
-	if not moving:
-		# Get keyboard movement input
-		var input_dir = Vector2.ZERO
-		
-		# WASD movement
-		if Input.is_key_pressed(KEY_D): input_dir.x += 1
-		if Input.is_key_pressed(KEY_A): input_dir.x -= 1
-		if Input.is_key_pressed(KEY_S): input_dir.y += 1
-		if Input.is_key_pressed(KEY_W): input_dir.y -= 1
-		
-		# Arrow keys
-		input_dir.x += Input.get_axis("ui_left", "ui_right")
-		input_dir.y += Input.get_axis("ui_up", "ui_down")
-		
-		process_movement_input(input_dir)
+	# Handle animation based on movement state (only change when necessary)
+	var desired_animation = "walk" if moving else "default"
+	if current_animation != desired_animation:
+		print("DEBUG: Changing animation from '", current_animation, "' to '", desired_animation, "'")
+		animated_sprite_2d.play(desired_animation)
+		current_animation = desired_animation
 
-func handle_mobile_input(_delta):
-	# Use the joystick input for movement
-	if not moving and joystick_input.length() > 0.5:  # Add a threshold to prevent small movements
-		process_movement_input(joystick_input)
+# Temperature/Health System functions
+func update_temperature_system(delta):
+	# Update time tracking
+	last_damage_time += delta
 	
-	# Handle taps for throwing (use a separate touch detection for throwing)
-	if Input.is_action_just_pressed("ui_touch") and throw_timer <= 0:
-		# Remove unused variable
-		var world_touch_pos = get_global_mouse_position()
-		
-		# Use touch_index_left instead of touch_index
-		if virtual_joystick and virtual_joystick.touch_index_left == -1:
-			throw_snowball()
-			throw_timer = throw_cooldown
+	# Handle warmth regeneration (only if not frozen and enough time has passed)
+	if not is_frozen and last_damage_time >= warmth_regen_delay:
+		current_warmth = min(current_warmth + warmth_regen_rate * delta, max_warmth)
+	
+	# Check if player is frozen
+	if current_warmth <= 0 and not is_frozen:
+		freeze_player()
 
-func process_movement_input(input_dir):
-	if input_dir != Vector2.ZERO:
-		input_dir = input_dir.normalized()
-		move_dir = input_dir
-		
-		# Check for collision before setting target position
-		var potential_target = position + move_dir * grid_size
-		if not would_collide(potential_target):
-			target_pos = potential_target
-			moving = true
+func take_damage(damage_amount: float):
+	if is_frozen:
+		return  # Can't take damage when already frozen
+	
+	current_warmth = max(current_warmth - damage_amount, 0)
+	last_damage_time = 0.0  # Reset damage timer
+	
+	print("Player hit! Warmth: ", current_warmth, "/", max_warmth)
+	
+	# Add visual/audio feedback here (screen shake, sound effect, etc.)
+	# TODO: Add damage feedback effects
+
+func freeze_player():
+	is_frozen = true
+	print("Player is frozen! Game Over!")
+	# Use our animation system for consistency
+	if current_animation != "default":
+		animated_sprite_2d.play("default")
+		current_animation = "default"
+	
+	# TODO: Add freeze visual effects, game over screen, etc.
+	# For now, just disable movement
+
+func get_warmth_percentage() -> float:
+	return current_warmth / max_warmth
+
+# Function to respawn/unfreeze player (for game restart)
+func respawn():
+	current_warmth = max_warmth
+	is_frozen = false
+	last_damage_time = 0.0
+	print("Player respawned!")
 
 func throw_snowball():
 	if snowball_scene:
@@ -224,6 +277,9 @@ func throw_snowball():
 		
 		# Set snowball position
 		snowball_instance.position = position + throw_offset
+		
+		# Set the thrower to prevent self-damage
+		snowball_instance.set_thrower(self)
 		
 		# Get mouse position relative to player
 		var mouse_pos = get_global_mouse_position()
@@ -256,5 +312,38 @@ func would_collide(pos):
 	# Calculate the motion vector from current position to target position
 	var motion = pos - position
 	
+	# Check if target position is within reasonable arena bounds
+	var arena_rect = Rect2(10, 10, 485, 235)  # Arena boundaries with padding
+	if not arena_rect.has_point(pos):
+		return true
+	
+	# Check center line constraint - player must stay on left side of arena
+	var _center_line_x = 252  # X coordinate of center line (for reference)
+	var player_side_max_x = 245  # Maximum X position for player (left side of arena)
+	if pos.x > player_side_max_x:
+		print("DEBUG: Player movement blocked - cannot cross center line (x=", pos.x, " > ", player_side_max_x, ")")
+		return true
+	
 	# Use CharacterBody2D's test_move to check if this movement would cause a collision
 	return test_move(transform, motion)
+
+func _input(event):
+	# Debug controls for testing temperature system
+	if event is InputEventKey and event.pressed:
+		match event.keycode:
+			KEY_1:
+				# Test player damage
+				take_damage(25.0)
+				print("DEBUG: Player took 25 damage! Current warmth: ", current_warmth)
+			KEY_2:
+				# Test player healing
+				current_warmth = min(current_warmth + 25.0, max_warmth)
+				print("DEBUG: Player healed 25 warmth! Current warmth: ", current_warmth)
+			KEY_3:
+				# Test instant freeze
+				current_warmth = 0
+				print("DEBUG: Player instantly frozen!")
+			KEY_4:
+				# Test respawn
+				respawn()
+				print("DEBUG: Player respawned!")

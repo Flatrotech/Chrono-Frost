@@ -7,7 +7,8 @@
 [ext_resource type="Texture2D" uid="uid://cybn8rhf0vo31" path="res://assets/aseprite/blue guy_1_Walk.png" id="5_wlwa6"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_rt2n2"]
-height = 36.0
+radius = 8.0
+height = 32.0
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_wlwa6"]
 atlas = ExtResource("4_xh42k")

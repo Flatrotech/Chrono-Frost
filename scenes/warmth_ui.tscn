@@ -1,0 +1,111 @@
+[gd_scene load_steps=2 format=3 uid="uid://b2kxm5n8d7qw1"]
+
+[ext_resource type="Script" path="res://scripts/warmth_ui.gd" id="1_warmth_ui"]
+
+[node name="WarmthUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("1_warmth_ui")
+
+[node name="PlayerPanel" type="Panel" parent="."]
+layout_mode = 0
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -80.0
+offset_right = 200.0
+offset_bottom = -10.0
+modulate = Color(1, 1, 1, 0.8)
+
+[node name="PlayerWarmthLabel" type="Label" parent="."]
+layout_mode = 0
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -70.0
+offset_right = 190.0
+offset_bottom = -50.0
+text = "Player Warmth: 100%"
+horizontal_alignment = 1
+
+[node name="PlayerWarmthBar" type="ProgressBar" parent="."]
+layout_mode = 0
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -45.0
+offset_right = 190.0
+offset_bottom = -20.0
+value = 100.0
+show_percentage = false
+
+[node name="EnemyPanel" type="Panel" parent="."]
+layout_mode = 0
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -80.0
+offset_right = -10.0
+offset_bottom = -10.0
+modulate = Color(1, 1, 1, 0.8)
+
+[node name="EnemyWarmthLabel" type="Label" parent="."]
+layout_mode = 0
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -190.0
+offset_top = -70.0
+offset_right = -20.0
+offset_bottom = -50.0
+text = "Enemy Warmth: 100%"
+horizontal_alignment = 1
+
+[node name="EnemyWarmthBar" type="ProgressBar" parent="."]
+layout_mode = 0
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -190.0
+offset_top = -45.0
+offset_right = -20.0
+offset_bottom = -20.0
+value = 100.0
+show_percentage = false
+
+[node name="StatusPanel" type="Panel" parent="."]
+layout_mode = 0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 10.0
+offset_right = 100.0
+offset_bottom = 50.0
+modulate = Color(1, 1, 1, 0.8)
+
+[node name="GameStatusLabel" type="Label" parent="."]
+layout_mode = 0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -90.0
+offset_top = 20.0
+offset_right = 90.0
+offset_bottom = 40.0
+text = "Fight!"
+horizontal_alignment = 1
+vertical_alignment = 1

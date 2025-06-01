@@ -46,12 +46,20 @@ func _on_body_entered(body):
 	# Handle collision with player - deal temperature damage
 	if body.is_in_group("player") and body.has_method("take_damage"):
 		print("Snowball hit player!")
+		
+		# Play snowball hit sound effect
+		AudioManager.play_snowball_hit()
+		
 		body.take_damage(25.0)  # Standard warmth damage
 		queue_free()  # Destroy snowball after hitting player
 	
 	# Handle collision with enemy AI
 	elif body.is_in_group("enemies") and body.has_method("take_damage"):
 		print("Snowball hit enemy!")
+		
+		# Play snowball hit sound effect
+		AudioManager.play_snowball_hit()
+		
 		body.take_damage(25.0)  # Standard damage to enemies too
 		queue_free()  # Destroy snowball after hitting enemy
 	

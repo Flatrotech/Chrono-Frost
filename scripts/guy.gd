@@ -43,6 +43,24 @@ func _ready():
 	add_to_group("player")
 	print("DEBUG: Player added to 'player' group")
 	
+	# Make sure exported values have defaults if they are null in the scene
+	if grid_size == null:
+		grid_size = 8
+	if move_speed == null:
+		move_speed = 2
+	if slow_down_distance == null:
+		slow_down_distance = 2.0
+	if max_warmth == null:
+		max_warmth = 100.0
+	if warmth_loss_per_hit == null:
+		warmth_loss_per_hit = 25.0
+	if warmth_regen_rate == null:
+		warmth_regen_rate = 5.0
+	if warmth_regen_delay == null:
+		warmth_regen_delay = 3.0
+	if throw_cooldown == null:
+		throw_cooldown = 0.5
+	
 	# Initialize temperature system
 	current_warmth = max_warmth
 	is_frozen = false
@@ -124,7 +142,7 @@ func _on_joystick_input(direction):
 
 func _physics_process(delta):
 	# Update throw cooldown timer
-	if throw_timer > 0:
+	if throw_timer != null and throw_timer > 0:
 		throw_timer -= delta
 	
 	# Update temperature system
@@ -178,6 +196,9 @@ func _physics_process(delta):
 			if not would_collide(potential_target):
 				target_pos = potential_target
 				moving = true
+				
+				# Play footstep sound when starting to move
+				AudioManager.play_footstep()
 	else:
 		# Move toward target position
 		var distance_vec = target_pos - position
@@ -195,6 +216,9 @@ func _physics_process(delta):
 				if not would_collide(potential_target):
 					target_pos = potential_target
 					moving = true
+					
+					# Play footstep sound when starting to move
+					AudioManager.play_footstep()
 		else:
 			# Move at constant speed for snappy movement
 			var move_step = move_dir * move_speed
@@ -216,6 +240,9 @@ func _physics_process(delta):
 					if not would_collide(potential_target):
 						target_pos = potential_target
 						moving = true
+						
+						# Play footstep sound when starting to move
+						AudioManager.play_footstep()
 	
 	# Handle animation based on movement state (only change when necessary)
 	var desired_animation = "walk" if moving else "default"
@@ -227,14 +254,16 @@ func _physics_process(delta):
 # Temperature/Health System functions
 func update_temperature_system(delta):
 	# Update time tracking
-	last_damage_time += delta
+	if last_damage_time != null:
+		last_damage_time += delta
 	
 	# Handle warmth regeneration (only if not frozen and enough time has passed)
-	if not is_frozen and last_damage_time >= warmth_regen_delay:
-		current_warmth = min(current_warmth + warmth_regen_rate * delta, max_warmth)
+	if not is_frozen and warmth_regen_delay != null and last_damage_time != null and last_damage_time >= warmth_regen_delay:
+		if current_warmth != null and warmth_regen_rate != null and max_warmth != null:
+			current_warmth = min(current_warmth + warmth_regen_rate * delta, max_warmth)
 	
 	# Check if player is frozen
-	if current_warmth <= 0 and not is_frozen:
+	if current_warmth != null and current_warmth <= 0 and not is_frozen:
 		freeze_player()
 
 func take_damage(damage_amount: float):
@@ -246,12 +275,19 @@ func take_damage(damage_amount: float):
 	
 	print("Player hit! Warmth: ", current_warmth, "/", max_warmth)
 	
+	# Play player hit sound effect
+	AudioManager.play_player_hit()
+	
 	# Add visual/audio feedback here (screen shake, sound effect, etc.)
 	# TODO: Add damage feedback effects
 
 func freeze_player():
 	is_frozen = true
 	print("Player is frozen! Game Over!")
+	
+	# Play freeze sound effect
+	AudioManager.play_freeze_sound()
+	
 	# Use our animation system for consistency
 	if current_animation != "default":
 		animated_sprite_2d.play("default")
@@ -261,6 +297,9 @@ func freeze_player():
 	# For now, just disable movement
 
 func get_warmth_percentage() -> float:
+	# Handle the case where max_warmth is null or 0
+	if max_warmth == null or max_warmth == 0:
+		return 1.0  # Default to 100% if max_warmth is invalid
 	return current_warmth / max_warmth
 
 # Function to respawn/unfreeze player (for game restart)
@@ -272,6 +311,9 @@ func respawn():
 
 func throw_snowball():
 	if snowball_scene:
+		# Play snowball throw sound effect
+		AudioManager.play_snowball_throw()
+		
 		var snowball_instance = snowball_scene.instantiate()
 		get_parent().add_child(snowball_instance)
 		

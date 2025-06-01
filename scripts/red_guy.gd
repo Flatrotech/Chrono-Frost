@@ -58,6 +58,34 @@ var reaction_timer = 0.0
 @onready var animated_sprite_2d = $AnimatedSprite2D
 
 func _ready():
+	# Make sure exported values have defaults if they are null in the scene
+	if grid_size == null:
+		grid_size = 8
+	if move_speed == null:
+		move_speed = 1.2
+	if detection_radius == null:
+		detection_radius = 300
+	if attack_range == null:
+		attack_range = 150
+	if retreat_distance == null:
+		retreat_distance = 80
+	if arena_bounds == null:
+		arena_bounds = Rect2(10, 10, 485, 235)
+	if center_line_x == null:
+		center_line_x = 252
+	if enemy_side_min_x == null:
+		enemy_side_min_x = 270
+	if max_warmth == null:
+		max_warmth = 100.0
+	if warmth_loss_per_hit == null:
+		warmth_loss_per_hit = 25.0
+	if warmth_regen_rate == null:
+		warmth_regen_rate = 3.0
+	if warmth_regen_delay == null:
+		warmth_regen_delay = 4.0
+	if throw_cooldown == null:
+		throw_cooldown = 0.8
+	
 	# Initialize position and animation
 	position = position.snapped(Vector2(grid_size, grid_size))
 	target_pos = position
@@ -119,14 +147,16 @@ func setup_patrol_points():
 
 func _physics_process(delta):
 	# Update timers
-	if throw_timer > 0:
+	if throw_timer != null and throw_timer > 0:
 		throw_timer -= delta
-	if reaction_timer > 0:
+	if reaction_timer != null and reaction_timer > 0:
 		reaction_timer -= delta
-	if dodge_timer > 0:
+	if dodge_timer != null and dodge_timer > 0:
 		dodge_timer -= delta
-	state_timer += delta
-	last_damage_time += delta
+	if state_timer != null:
+		state_timer += delta
+	if last_damage_time != null:
+		last_damage_time += delta
 	
 	# Update temperature system
 	update_temperature_system(delta)
@@ -270,7 +300,7 @@ func chase_behavior():
 					change_state(AIState.PATROL)
 
 func attack_behavior():
-	if player and throw_timer <= 0:
+	if player and (throw_timer == null or throw_timer <= 0):
 		# Try to throw snowball at player - be more aggressive
 		var distance_to_player = position.distance_to(player.position)
 		if distance_to_player <= attack_range:
@@ -444,6 +474,10 @@ func throw_snowball_at_target(target_position: Vector2):
 	print("AI: throw_snowball_at_target called")
 	if snowball_scene:
 		print("AI: snowball_scene exists, creating snowball")
+		
+		# Play enemy snowball throw sound effect
+		AudioManager.play_snowball_throw()
+		
 		var snowball_instance = snowball_scene.instantiate()
 		get_parent().add_child(snowball_instance)
 		
@@ -491,11 +525,12 @@ func would_collide(pos):
 # Temperature/Health System functions
 func update_temperature_system(delta):
 	# Handle warmth regeneration (only if not frozen and enough time has passed)
-	if not is_frozen and last_damage_time >= warmth_regen_delay:
-		current_warmth = min(current_warmth + warmth_regen_rate * delta, max_warmth)
+	if not is_frozen and warmth_regen_delay != null and last_damage_time != null and last_damage_time >= warmth_regen_delay:
+		if current_warmth != null and warmth_regen_rate != null and max_warmth != null:
+			current_warmth = min(current_warmth + warmth_regen_rate * delta, max_warmth)
 	
 	# Check if enemy is frozen
-	if current_warmth <= 0 and not is_frozen:
+	if current_warmth != null and current_warmth <= 0 and not is_frozen:
 		freeze_enemy()
 
 func take_damage(damage_amount: float):
@@ -507,18 +542,28 @@ func take_damage(damage_amount: float):
 	
 	print("Enemy hit! Warmth: ", current_warmth, "/", max_warmth)
 	
+	# Play enemy hit sound effect
+	AudioManager.play_enemy_hit()
+	
 	# Add visual/audio feedback here
 	# TODO: Add damage feedback effects
 
 func freeze_enemy():
 	is_frozen = true
 	print("Enemy is frozen! Player wins!")
+	
+	# Play freeze sound effect
+	AudioManager.play_freeze_sound()
+	
 	animated_sprite_2d.play("default")
 	
 	# TODO: Add freeze visual effects, victory screen, etc.
 	# For now, just disable AI
 
 func get_warmth_percentage() -> float:
+	# Handle the case where max_warmth is null or 0
+	if max_warmth == null or max_warmth == 0:
+		return 1.0  # Default to 100% if max_warmth is invalid
 	return current_warmth / max_warmth
 
 # Function to respawn enemy (for game restart)

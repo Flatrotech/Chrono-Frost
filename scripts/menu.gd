@@ -19,6 +19,9 @@ func _on_quit_button_pressed():
 	get_tree().quit()
 
 func _ready():
+	# Start the menu music when the menu loads
+	AudioManager.play_music("menu")
+	
 	# Set the scene if not already set in the editor
 	if not scene:
 		scene = preload("res://scenes/main_scene.tscn")

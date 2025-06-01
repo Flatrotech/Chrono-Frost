@@ -4,6 +4,9 @@ extends Node
 # This script manages transitions between game states
 
 func _ready():
+	# Start the battle music when the game begins
+	AudioManager.play_music("game")
+	
 	# Connect to tree events if needed
 	pass
 

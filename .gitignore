@@ -3,3 +3,43 @@
 /android/
 builds/
 export_presets.cfg
+
+# Asset files to exclude from git
+assets/audio/music/*.ogg
+assets/audio/music/*.ogg.import
+assets/audio/sfx/*.wav
+assets/audio/sfx/*.wav.import
+assets/aseprite/*.aseprite
+assets/aseprite/*.png
+assets/aseprite/*.png.import
+assets/*.png
+assets/*.png.import
+assets/*.aseprite
+assets/*.svg
+assets/*.svg.import
+assets/*.ttf
+assets/*.ttf.import
+assets/*.jpg
+assets/*.jpg.import
+assets/*.jpeg
+assets/*.jpeg.import
+
+# Exceptions - keep these asset files
+!assets/audio/README.md
+!assets/audio/sfx/README.txt
+
+# Builds and exports
+*.zip
+
+# Imported translations (automatically generated from CSV files)
+*.translation
+
+# System/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+*.code-workspace
+*~
+
+# User-specific files
+*.log
